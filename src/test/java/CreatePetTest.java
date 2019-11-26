@@ -1,81 +1,69 @@
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
-import io.restassured.specification.RequestSpecification;
-import org.junit.FixMethodOrder;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runners.MethodSorters;
 
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.core.Is.is;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class CreatePetTest {
 
-    static long petId;
+    private PetEndpoint petEndpoint = new PetEndpoint();
 
-    public RequestSpecification given() {
-        return RestAssured
-                .given()
-                .baseUri("https://petstore.swagger.io/v2")
-                .log().all()
-                .contentType(ContentType.JSON);
-    }
+    private static long petId;
+    private String body = "{\n" +
+            "  \"id\": 0,\n" +
+            "  \"category\": {\n" +
+            "    \"id\": 0,\n" +
+            "    \"name\": \"string\"\n" +
+            "  },\n" +
+            "  \"name\": \"kitty\",\n" +
+            "  \"photoUrls\": [\n" +
+            "    \"string\"\n" +
+            "  ],\n" +
+            "  \"tags\": [\n" +
+            "    {\n" +
+            "      \"id\": 0,\n" +
+            "      \"name\": \"string\"\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"status\": \"available\"\n" +
+            "}";
 
-    @Test
-    public void test1CreatePet() {
-
-        String body = "{\n" +
-                "  \"id\": 0,\n" +
-                "  \"category\": {\n" +
-                "    \"id\": 0,\n" +
-                "    \"name\": \"string\"\n" +
-                "  },\n" +
-                "  \"name\": \"kitty\",\n" +
-                "  \"photoUrls\": [\n" +
-                "    \"string\"\n" +
-                "  ],\n" +
-                "  \"tags\": [\n" +
-                "    {\n" +
-                "      \"id\": 0,\n" +
-                "      \"name\": \"string\"\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"status\": \"available\"\n" +
-                "}";
-
-        ValidatableResponse response = given()
-                .body(body)
-                .post(PetEndpoint.CREATE_PET)
-                .then()
+    @Before
+    public void beforeMethod() {
+        ValidatableResponse response = petEndpoint
+                .createPet(body)
                 .statusCode(is(200))
-                .body("category.name", is(not("")))
-                .log().all();
+                .body("category.name", is(not("")));
         petId = response.extract().path("id");
-        System.out.println(petId);
     }
 
     @Test
-    public void test2GetPetById() {
-        System.out.println(petId);
-        given()
-                .get(PetEndpoint.GET_PET, petId)
-                .then()
+    public void createPet() {
+        petEndpoint
+                .createPet(body)
                 .statusCode(is(200))
-                .body("category.name", is(not("")))
-                .log().all();
+                .body("category.name", is(not("")));
     }
 
     @Test
-    public void test3DeletePetById() {
-        System.out.println(petId);
-        given()
-                .delete(PetEndpoint.DELETE_PET, petId)
-                .then()
+    public void getPetById() {
+        petEndpoint
+                .getPet(petId)
                 .statusCode(is(200))
-                .log().all();
+                .body("category.name", is(not("")));
+    }
 
+    @Test
+    public void deletePetById() {
+        petEndpoint
+                .deletePet(petId)
+                .statusCode(is(200));
 
+        petEndpoint
+                .getPet(petId)
+                .statusCode(is(404))
+                .body("message", is("Pet not found"));
     }
 
 }
