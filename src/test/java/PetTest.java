@@ -1,16 +1,22 @@
 import data.Pet;
 import data.Status;
 import io.restassured.response.ValidatableResponse;
+import net.serenitybdd.junit.runners.SerenityRunner;
+import net.thucydides.core.annotations.Steps;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.core.Is.is;
 
+@RunWith(SerenityRunner.class)
 public class PetTest {
 
-    private PetEndpoint petEndpoint = new PetEndpoint();
+    @Steps
+    private PetEndpoint petEndpoint;
 
     private Pet pet = new Pet(0, "string", "kitty", Status.pending);
 
@@ -87,7 +93,8 @@ public class PetTest {
     public void uploadPetImage() {
         petEndpoint
                 .uploadPetImage(petId, "kitty_cat.png")
-                .statusCode(200);
+                .statusCode(200)
+                .body("message", containsString("uploaded to"));
     }
 
 }
