@@ -1,16 +1,18 @@
 import data.Pet;
+import data.Status;
 import io.restassured.response.ValidatableResponse;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.core.Is.is;
 
 public class PetTest {
 
     private PetEndpoint petEndpoint = new PetEndpoint();
 
-    private Pet pet = new Pet(0, "string", "kitty", "booked");
+    private Pet pet = new Pet(0, "string", "kitty", Status.pending);
 
     private static long petId;
 
@@ -48,40 +50,23 @@ public class PetTest {
         petEndpoint
                 .getPet(petId)
                 .statusCode(is(404))
-                .body("message", is("data.Pet not found"));
+                .body("message", is("Pet not found"));
     }
 
     @Test
     public void getPetByStatus() {
         petEndpoint
-                .getPetByStatus("booked")
+                .getPetByStatus(Status.pending)
                 .statusCode(200)
-                .body("status[0]", is("booked")); //ToDo: verify each element status
+                .body("status", everyItem(is(Status.pending.toString())));
     }
 
     @Test
     public void updatePet() {
-        String body = "{\n" +
-                "  \"id\": "+petId+",\n" +
-                "  \"category\": {\n" +
-                "    \"id\": 0,\n" +
-                "    \"name\": \"pets\"\n" +
-                "  },\n" +
-                "  \"name\": \"kitty\",\n" +
-                "  \"photoUrls\": [\n" +
-                "    \"string\"\n" +
-                "  ],\n" +
-                "  \"tags\": [\n" +
-                "    {\n" +
-                "      \"id\": 0,\n" +
-                "      \"name\": \"string\"\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"status\": \"booked\"\n" +
-                "}";
+        Pet updatedPet = new Pet(petId, "pets", "kitty", Status.pending);
 
         petEndpoint
-                .updatePet(body)
+                .updatePet(updatedPet)
                 .statusCode(200)
                 .body("category.name", is("pets"));
     }
@@ -96,6 +81,13 @@ public class PetTest {
                 .statusCode(200)
                 .body("name", is("kitty cat"))
                 .body("status", is("available"));
+    }
+
+    @Test
+    public void uploadPetImage() {
+        petEndpoint
+                .uploadPetImage(petId, "kitty_cat.png")
+                .statusCode(200);
     }
 
 }

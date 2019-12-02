@@ -1,11 +1,16 @@
 import data.Pet;
+import data.Status;
 import io.restassured.RestAssured;
+import io.restassured.builder.MultiPartSpecBuilder;
 import io.restassured.filter.log.LogDetail;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
 import io.restassured.response.ValidatableResponse;
+import io.restassured.specification.MultiPartSpecification;
 import io.restassured.specification.RequestSpecification;
+
+import java.io.File;
 
 public class PetEndpoint {
     public final static String CREATE_PET = "/pet";
@@ -14,6 +19,7 @@ public class PetEndpoint {
     public final static String GET_PET_BY_STATUS = "/pet/findByStatus";
     public final static String UPDATE_PET = "/pet";
     public final static String UPDATE_PET_BY_ID = "/pet/{petId}";
+    public final static String UPLOAD_PET_IMAGE = "/pet/{petId}/uploadImage";
 
     static {
         RestAssured.filters(new ResponseLoggingFilter(LogDetail.ALL));
@@ -46,16 +52,16 @@ public class PetEndpoint {
                 .then();
     }
 
-    public ValidatableResponse getPetByStatus(String status) {
+    public ValidatableResponse getPetByStatus(Status status) {
         return given()
                 .queryParam("status", status)
                 .get(GET_PET_BY_STATUS)
                 .then();
     }
 
-    public ValidatableResponse updatePet(String body) {
+    public ValidatableResponse updatePet(Pet pet) {
         return given()
-                .body(body)
+                .body(pet)
                 .put(UPDATE_PET)
                 .then();
     }
@@ -66,6 +72,16 @@ public class PetEndpoint {
                 .formParam("name", petName)
                 .formParam("status", petStatus)
                 .post(UPDATE_PET_BY_ID, petId)
+                .then();
+    }
+
+    public ValidatableResponse uploadPetImage(long petId, String resourcesFilePath) {
+        File file = new File(getClass().getResource(resourcesFilePath).getFile());
+
+        return given()
+                .contentType("multipart/form-data")
+                .multiPart(file)
+                .post(UPLOAD_PET_IMAGE, petId)
                 .then();
     }
 
