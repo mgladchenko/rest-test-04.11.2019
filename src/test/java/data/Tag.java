@@ -1,14 +1,13 @@
 package data;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import lombok.Builder;
+import lombok.Data;
 
-@JsonAutoDetect(fieldVisibility = JsonAutoDetect.Visibility.ANY)
+@Data
+@Builder
 public class Tag {
-    private long id;
-    private String name;
-
-    public Tag(long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+    @Builder.Default
+    private long id = 0;
+    @Builder.Default
+    private String name = "animals";
 }
